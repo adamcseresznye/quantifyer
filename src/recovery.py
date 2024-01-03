@@ -43,31 +43,28 @@ class Recovery:
     def rs_identity(self):
         return self.is_correspondence_file.external_standard.unique()
 
-    def calculate_RRF(self, areas, amounts):
-        rs_area = self.filter_peak_areas(self.rs_identity, areas).squeeze()
-        is_area = self.filter_peak_areas(self.is_identity, areas)
+    def calculate_RF(self):
+        rs_area = self.filter_peak_areas(
+            self.rs_identity, self.sample_names_not_isrs
+        ).squeeze()
+        is_area = self.filter_peak_areas(self.is_identity, self.sample_names_not_isrs)
 
-        rs_amount = amounts.loc[self.rs_identity].squeeze()
-        is_amount = amounts.loc[self.is_identity]
+        rs_amount = self.is_concentration_file_amount(self.rs_identity).squeeze()
+        is_amount = self.is_concentration_file_amount(self.is_identity)
 
         return ((is_area * rs_amount) / rs_area).div(is_amount, axis="index")
 
-    def calculate_mean_RRF(self):
-        return self.calculate_RRF(
-            self.isrs_sample_names, self.is_concentration_file_amount()
-        ).mean(axis="columns")
+    def calculate_mean_RF(self):
+        return self.calculate_RF().mean(axis="columns")
 
-    def get_RFF_stats(self):
-        return self.calculate_RRF(
-            self.isrs_sample_names, self.is_concentration_file_amount()
-        ).describe()
+    def get_RF_stats(self):
+        return self.calculate_RF().describe()
 
-    def plot_RFF(self):
+    def plot_RF(self):
         fig, ax = plt.subplots()
-        plot = self.calculate_RRF(
-            self.isrs_sample_names, self.is_concentration_file_amount()
-        ).boxplot(ax=ax, rot=90)
-        ax.set_title("Boxplots for RFF values")
+        plot = self.calculate_RF().boxplot(ax=ax, rot=90)
+        ax.set_title("Boxplots for RF values")
+        ax.set_ylabel("Response Factors")
 
         return plot
 
@@ -80,7 +77,7 @@ class Recovery:
         rs_amount = self.is_concentration_file_amount(self.rs_identity).squeeze()
         is_amount = self.is_concentration_file_amount(self.is_identity)
 
-        mean_RFF = self.calculate_mean_RRF()
+        mean_RFF = self.calculate_mean_RF()
 
         is_masses = ((is_area * rs_amount) / rs_area).div(mean_RFF, axis="index")
 
@@ -93,6 +90,7 @@ class Recovery:
         fig, ax = plt.subplots()
         plot = self.calculate_recovery().boxplot(ax=ax, rot=90)
         ax.set_title("Boxplots for recovery values")
+        ax.set_ylabel("Recovery (%)")
 
         return plot
 
