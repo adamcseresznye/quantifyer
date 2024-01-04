@@ -3,7 +3,7 @@
 This module provides functions and a data class for reading in and processing CSV files.
 """
 
-# -*- coding: utf-8 -*-
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -25,7 +25,7 @@ def preprocess_file(file: str) -> pd.DataFrame:
 
     df = (
         pd.read_csv(file)
-        .rename(columns=lambda x: x.replace(r"\W", "_").lower())
+        .rename(columns=lambda x: re.sub(r"\W", "_", x.lower()))
         .pipe(
             lambda df: df.assign(
                 **{
@@ -85,10 +85,13 @@ class Data:
             To validate object-type columns in the 'quant_file' attribute:
             >>> self.validate_object_cols('quant_file')
         """
-        for column in getattr(self, attribute).select_dtypes(include="object"):
-            assert (
-                not getattr(self, attribute)[column].str.isupper().any()
-            ), f"{column} column should not contain uppercase characters"
+        if (
+            hasattr(self, attribute) and getattr(self, attribute) is not None
+        ):  # Check if the attribute is present and not None
+            for column in getattr(self, attribute).select_dtypes(include="object"):
+                assert (
+                    not getattr(self, attribute)[column].str.isupper().any()
+                ), f"{column} column should not contain uppercase characters"
 
     def validate_col_names(self, attribute):
         """Validate column names in the specified attribute for uppercase characters.
@@ -103,9 +106,12 @@ class Data:
             To validate column names in the 'quant_file' attribute:
             >>> self.validate_col_names('quant_file')
         """
-        assert (
-            not getattr(self, attribute).columns.str.isupper().any()
-        ), f"Column names in {attribute} should not contain uppercase characters"
+        if (
+            hasattr(self, attribute) and getattr(self, attribute) is not None
+        ):  # Check if the attribute is present and not None
+            assert (
+                not getattr(self, attribute).columns.str.isupper().any()
+            ), f"Column names in {attribute} should not contain uppercase characters"
 
     def validate_data(self):
         """Validate data attributes against expected columns and additional validations.
@@ -140,13 +146,17 @@ class Data:
         }
 
         for attribute, expected_columns in attributes.items():
-            if hasattr(self, attribute):  # Check if the attribute is present
+            if (
+                hasattr(self, attribute) and getattr(self, attribute) is not None
+            ):  # Check if the attribute is present and not None
                 assert set(expected_columns).issubset(
                     getattr(self, attribute).columns
                 ), f"Missing columns in {attribute}. Expected: {expected_columns}, Actual: {getattr(self, attribute).columns}"
 
         for attribute in attributes:
-            if hasattr(self, attribute):  # Check if the attribute is present
+            if (
+                hasattr(self, attribute) and getattr(self, attribute) is not None
+            ):  # Check if the attribute is present and not None
                 self.validate_col_names(attribute)
                 self.validate_object_cols(attribute)
         print("All validation was successful.")
