@@ -16,7 +16,7 @@ import recovery
 
 @pytest.fixture
 def mock_peak_areas():
-    return "name,type,QC_1,QC_2,QC_3,QC_4,QC_5,ISRS_1,ISRS_2,ISRS_3,ISRS_4,ISRS_5\n13C_HCB,Area,100,100,100,100,100,1000,1000,1000,1000,1000\nCB_207,Area,100,100,100,100,100,1000,1000,1000,1000,1000"
+    return "name,type,QC_1,QC_2,QC_3,QC_4,QC_5,ISRS_1,ISRS_2,ISRS_3,ISRS_4,ISRS_5\n13C_HCB,Area,20,40,60,80,100,20,40,60,80,100\nCB_207,Area,100,100,100,100,100,1000,1000,1000,1000,1000"
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def mock_is_concentration_file():
 
 @pytest.fixture
 def mock_sample_properties_file():
-    return "sample_name,sample_type,volume\nQC_1,qc,0.5\nQC_2,qc,0.5\nQC_3,qc,0.5\nQC_4,qc,0.5\nQC_5,qc,0.5\nsample_1,sample,0.5\nsample_2,sample,0.5\nsample_3,sample,0.5\nsample_4,sample,0.5\nsample_5,sample,0.5"
+    return "sample_name,sample_type,volume\nQC_1,qc,0.5\nQC_2,qc,0.5\nQC_3,qc,0.5\nQC_4,qc,0.5\nQC_5,qc,0.5\nISRS_1,isrs,0.5\nISRS_2,isrs,0.5\nISRS_3,isrs,0.5\nISRS_4,isrs,0.5\nISRS_5,isrs,0.5"
 
 
 @pytest.fixture
@@ -57,10 +57,11 @@ def test_calculate_mean_RF(
             df.sample_properties_file,
             df.is_correspondence_file,
         )
-        .calculate_mean_RF()
+        .calculate_RF()
+        .mean(axis="columns")
         .iloc[0]
     )
-    assert pytest.approx(mean_RF, 0.01) == 0.1
+    assert pytest.approx(mean_RF, 0.01) == 0.06
 
 
 def test_calculate_mean_recovery(
@@ -150,7 +151,7 @@ def test_individual_recoveries(
         .values.flatten()
         .tolist()
     )
-    expected_recoveries = [100, 100, 100, 100, 100]
+    expected_recoveries = [33.333, 66.667, 100.000, 133.333, 166.667]
 
     assert pytest.approx(individual_recoveries, 0.01) == expected_recoveries
 
@@ -182,6 +183,6 @@ def test_individual_RFs(
         .values.flatten()
         .tolist()
     )
-    expected_RFs = [0.1, 0.1, 0.1, 0.1, 0.1]
+    expected_RFs = [0.020, 0.040, 0.060, 0.080, 0.100]
 
     assert pytest.approx(individual_RFs, 0.01) == expected_RFs
