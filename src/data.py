@@ -11,6 +11,29 @@ from typing import Optional
 import pandas as pd
 
 
+@dataclass
+class Data:
+    quant_file: str
+    is_correspondence_file: str
+    sample_properties_file: str
+    qc_file: Optional[str] = None
+    is_concentration_file: Optional[str] = None
+
+    def __post_init__(self):
+        self.file_reader = FileReader()
+        self.data_processor = DataProcessor()
+        self.quant_file = self.process_file(self.quant_file)
+        self.is_correspondence_file = self.process_file(self.is_correspondence_file)
+        self.sample_properties_file = self.process_file(self.sample_properties_file)
+        self.qc_file = self.process_file(self.qc_file)
+        self.is_concentration_file = self.process_file(self.is_concentration_file)
+
+    def process_file(self, file):
+        if file is not None:
+            return self.data_processor.preprocess_file(self.file_reader.read_file(file))
+        return None
+
+
 class FileReader:
     def read_csv(self, file_path: str) -> pd.DataFrame:
         data = pd.read_csv(file_path)
@@ -48,29 +71,6 @@ class DataProcessor:
 
     def preprocess_str_column(self, series: pd.Series) -> pd.Series:
         return series.astype(str).str.replace(r"\W", "_", regex=True).str.lower()
-
-
-@dataclass
-class Data:
-    quant_file: str
-    is_correspondence_file: str
-    sample_properties_file: str
-    qc_file: Optional[str] = None
-    is_concentration_file: Optional[str] = None
-
-    def __post_init__(self):
-        self.file_reader = FileReader()
-        self.data_processor = DataProcessor()
-        self.quant_file = self.process_file(self.quant_file)
-        self.is_correspondence_file = self.process_file(self.is_correspondence_file)
-        self.sample_properties_file = self.process_file(self.sample_properties_file)
-        self.qc_file = self.process_file(self.qc_file)
-        self.is_concentration_file = self.process_file(self.is_concentration_file)
-
-    def process_file(self, file):
-        if file is not None:
-            return self.data_processor.preprocess_file(self.file_reader.read_file(file))
-        return None
 
 
 class DataValidator:
