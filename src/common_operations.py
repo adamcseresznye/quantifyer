@@ -1,6 +1,8 @@
 """A module that contains common functions used by other modules.
 """
 
+import pandas as pd
+
 
 class BaseCalculator:
     def __init__(self, data):
@@ -41,14 +43,10 @@ class BaseCalculator:
 
     def get_sample_areas_by_sample_type(self, sample_type):
         filtered_sample_names = self.get_sample_names_by_sample_type(sample_type)
-        is_rs_names = [
-            val for lists in self.get_is_rs_names().values() for val in lists
-        ]
         return (
             self.data.quant_file.query("type == 'area'")
             .set_index("name")
             .filter(items=filtered_sample_names, axis="columns")
-            .loc[lambda df: ~df.index.isin(is_rs_names), :]
         )
 
     def get_sample_concentrations_by_sample_type(self, sample_type):
