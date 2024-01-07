@@ -5,69 +5,61 @@ for individual analytes. These factors are calculated by comparing the
 known amounts of analytes with their experimentally measured values.
 """
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Optional, Tuple
-
 import matplotlib.pylab as plt
 import pandas as pd
 
-import utils
+import common_operations
 
 
-class CorrectionFactor:
-    def __init__(self, concentrations, sample_properties_file, qc_file):
-        self.concentrations = concentrations.query("type == 'concentration'").set_index(
-            "name"
+class CorrectionFactor(common_operations.BaseCalculator):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def calculate_measured_qc_concentration(self):
+        CONVERT_TO_NGML = 1000
+        native_concentration_in_qc = self.get_sample_concentrations_by_sample_type("qc")
+        AVG_native_concentration_in_blank = (
+            self.get_sample_concentrations_by_sample_type("blank")
+        ).mean(axis="columns")
+
+        blank_substracted_native_concentration_in_qc = (
+            native_concentration_in_qc.sub(
+                AVG_native_concentration_in_blank, axis="index"
+            )
+            .div(self.get_sample_volume_by_sample_type("qc"), axis=1)
+            .div(CONVERT_TO_NGML)
         )
-        self.sample_properties_file = sample_properties_file
-        self.qc_file = qc_file.set_index("native").squeeze()
+        return blank_substracted_native_concentration_in_qc
 
-    @property
-    def blank_sample_names(self):
-        return self.sample_properties_file.loc[
-            self.sample_properties_file.sample_type == "blank", "sample_name"
-        ].values
-
-    @property
-    def qc_sample_names(self):
-        return self.sample_properties_file.loc[
-            self.sample_properties_file.sample_type == "qc", "sample_name"
-        ].values
-
-    @property
-    def qc_volume(self):
-        return (
-            self.sample_properties_file.query("sample_name.isin(@self.qc_sample_names)")
-            .drop(columns="sample_type")
-            .set_index("sample_name")
-            .squeeze()
+    def calculate_correction_factor(self):
+        AVG_native_concentration_in_qc = (
+            self.calculate_measured_qc_concentration().mean(axis="columns")
         )
-
-    def calculate_average_blanks(self):
-        return self.concentrations.loc[:, self.blank_sample_names].mean(axis=1)
-
-    def calculate_measured_qc_values(self):
-        qc_concentrations = self.concentrations.loc[:, self.qc_sample_names]
-        return (
-            (qc_concentrations.sub(self.calculate_average_blanks(), axis=0))
-            .div(self.qc_volume, axis=1)
-            .div(1000)
+        theoretical_native_concentration_in_qc = self.data.qc_file.set_index(
+            "native"
+        ).squeeze()
+        correction_factor = theoretical_native_concentration_in_qc.div(
+            AVG_native_concentration_in_qc
         )
 
-    def calculate_correction_factors(self):
-        calculated_mean_qc = self.calculate_measured_qc_values().mean(axis=1)
-        correction_factors = self.qc_file.div(calculated_mean_qc)
+        return correction_factor.mask(correction_factor <= 0, 1)
 
-        return correction_factors.mask(correction_factors <= 0, 1)
-
-    def plot_correction_factors(self, sort_values=False):
+    def plot_correction_factor(self, sort_values=False):
         fig, ax = plt.subplots()
-        correction_factors = self.calculate_correction_factors()
+        correction_factors = self.calculate_correction_factor()
         if sort_values:
-            correction_factors = self.calculate_correction_factors().sort_values()
+            correction_factors = self.calculate_correction_factor().sort_values()
         plot = correction_factors.plot.bar(ax=ax, rot=90)
-        ax.set_title("Boxplots for RF values")
-        ax.set_ylabel("Response factors")
+        ax.set_title("Correction factor")
+        ax.set_ylabel(
+            "Theoretical concentration (ng/ml)/\nAverage measured concentrations in QC samples (ng/ml)"
+        )
 
+        plt.axhline(
+            y=1,
+            xmin=0,
+            xmax=self.calculate_correction_factor().size,
+            color="r",
+            ls="--",
+        )
         return plot

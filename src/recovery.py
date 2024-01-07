@@ -29,11 +29,11 @@ class Recovery(common_operations.BaseCalculator):
             .squeeze()
         )
 
-        recovery = ((is_area * is_rs_amount["rs_amount"].squeeze()) / rs_area).div(
-            is_rs_amount["is_amount"], axis="index"
-        )
+        response_factor = (
+            (is_area * is_rs_amount["rs_amount"].squeeze()) / rs_area
+        ).div(is_rs_amount["is_amount"], axis="index")
 
-        return recovery
+        return response_factor
 
     def plot_response_factor(self, by_sample=False):
         fig, ax = plt.subplots()
@@ -41,9 +41,9 @@ class Recovery(common_operations.BaseCalculator):
             plot = self.calculate_response_factor().boxplot(ax=ax, rot=90)
         else:
             plot = self.calculate_response_factor().transpose().boxplot(ax=ax, rot=90)
-        ax.set_title("Relative response factors")
-        ax.set_ylabel("Response factors compared to reconstitution standard")
-
+        ax.set_title("Relative response factor")
+        ax.set_ylabel("(IS_AREA * RS_MASS(pg))/(RS_AREA * IS_MASS(pg))")
+        ax.grid(False)
         return plot
 
     def calculate_recovery(self) -> pd.DataFrame:
@@ -71,7 +71,8 @@ class Recovery(common_operations.BaseCalculator):
             plot = self.calculate_recovery().boxplot(ax=ax, rot=90)
         else:
             plot = self.calculate_recovery().transpose().boxplot(ax=ax, rot=90)
-        ax.set_title("Relative response factors")
-        ax.set_ylabel("Response factors compared to reconstitution standard")
+        ax.set_title("Recovery")
+        ax.set_ylabel("Recovery (%)")
+        ax.grid(False)
 
         return plot

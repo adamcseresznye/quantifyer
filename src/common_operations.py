@@ -1,8 +1,6 @@
 """A module that contains common functions used by other modules.
 """
 
-import pandas as pd
-
 
 class BaseCalculator:
     def __init__(self, data):
