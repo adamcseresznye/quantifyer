@@ -55,10 +55,10 @@ class Pipeline:
         return self._concentration_calculator
 
     def execute(self):
-        #     # Step 1: Validate the data
+        # Step 1: Validate the data
         self.data_validator.validate_data()
 
-        #     # Step 2: Calculate recovery
+        # Step 2: Calculate recovery
         recovery = self.recovery_calculator.calculate_recovery()
 
         # Step 3: Calculate correction factors
@@ -69,4 +69,4 @@ class Pipeline:
         # Step 4: Calculate concentrations
         concentrations = self.concentration_calculator.calculate_concentration()
 
-        return concentrations
+        return recovery, correction_factors, concentrations
