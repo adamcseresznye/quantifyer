@@ -6,6 +6,7 @@ known amounts of analytes with their experimentally measured values.
 """
 
 import matplotlib.pylab as plt
+import numpy as np
 import pandas as pd
 
 import common_operations
@@ -14,6 +15,11 @@ import common_operations
 class CorrectionFactor(common_operations.BaseCalculator):
     def __init__(self, data):
         super().__init__(data)
+        if self.data.qc_file is None:
+            unique_names = self.data.quant_file.name.unique()
+            self.data.qc_file = pd.DataFrame(
+                {"native": unique_names, "concentration": np.ones_like(unique_names)}
+            )
 
     def calculate_measured_qc_concentration(self):
         CONVERT_TO_NGML = 1000

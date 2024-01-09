@@ -100,13 +100,15 @@ class DataValidator:
             "qc_file": ["native", "concentration"],
             "is_concentration_file": ["name", "amount"],
         }
-
-        for attribute, expected_columns in attributes.items():
-            df = getattr(self.data, attribute)
-            if df is not None:
-                assert set(expected_columns).issubset(
-                    df.columns
-                ), f"Missing columns in {attribute}. Expected: {expected_columns}, Actual: {df.columns}"
-                self.validate_col_names(df)
-                self.validate_object_cols(df)
-        print("All validation was successful.")
+        try:
+            for attribute, expected_columns in attributes.items():
+                df = getattr(self.data, attribute)
+                if df is not None:
+                    assert set(expected_columns).issubset(
+                        df.columns
+                    ), f"Missing columns in {attribute}. Expected: {expected_columns}, Actual: {df.columns}"
+                    self.validate_col_names(df)
+                    self.validate_object_cols(df)
+        except AssertionError as e:
+            print(e)
+            raise e

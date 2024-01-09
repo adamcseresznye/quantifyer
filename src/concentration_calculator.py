@@ -8,7 +8,7 @@ import common_operations
 
 
 class ConcentrationCalculator(common_operations.BaseCalculator):
-    def __init__(self, data, correction_factor):
+    def __init__(self, data, correction_factor=None):
         super().__init__(data)
         self.correction_factor = correction_factor
 
@@ -19,15 +19,22 @@ class ConcentrationCalculator(common_operations.BaseCalculator):
         native_concentration_in_samples_other_than_blank = (
             self.get_sample_concentrations_by_sample_type("sample")
         )
-        concentrations = (
-            (
+        if self.correction_factor is not None:
+            concentrations = (
+                (
+                    native_concentration_in_samples_other_than_blank.sub(
+                        AVG_native_concentration_in_blank, axis=0
+                    )
+                )
+                .mul(self.correction_factor, axis=0)
+                .div(self.get_sample_volume_by_sample_type("sample"))
+            )
+        else:
+            concentrations = (
                 native_concentration_in_samples_other_than_blank.sub(
                     AVG_native_concentration_in_blank, axis=0
                 )
-            )
-            .mul(self.correction_factor, axis=0)
-            .div(self.get_sample_volume_by_sample_type("sample"))
-        )
+            ).div(self.get_sample_volume_by_sample_type("sample"))
         return concentrations.mask(concentrations <= 0, 1)
 
     def plot_concentration(self, by_sample=False):
