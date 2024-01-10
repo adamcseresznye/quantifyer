@@ -15,11 +15,6 @@ import common_operations
 class CorrectionFactor(common_operations.BaseCalculator):
     def __init__(self, data):
         super().__init__(data)
-        if self.data.qc_file is None:
-            unique_names = self.data.quant_file.name.unique()
-            self.data.qc_file = pd.DataFrame(
-                {"native": unique_names, "concentration": np.ones_like(unique_names)}
-            )
 
     def calculate_measured_qc_concentration(self):
         CONVERT_TO_NGML = 1000
@@ -38,17 +33,32 @@ class CorrectionFactor(common_operations.BaseCalculator):
         return blank_substracted_native_concentration_in_qc
 
     def calculate_correction_factor(self):
-        AVG_native_concentration_in_qc = (
-            self.calculate_measured_qc_concentration().mean(axis="columns")
-        )
-        theoretical_native_concentration_in_qc = self.data.qc_file.set_index(
-            "native"
-        ).squeeze()
-        correction_factor = theoretical_native_concentration_in_qc.div(
-            AVG_native_concentration_in_qc
-        )
+        if self.data.is_concentration_file is None:
+            # if the qc file is not present, return a correction factor set to 1 for all analytes
+            unique_names = pd.Series(self.data.quant_file.name.unique())
+            isrs_name = [x for name in self.get_is_rs_name().values() for x in name]
+            correction_factor_set_to_one = pd.DataFrame(
+                {
+                    "native": unique_names[~unique_names.isin(isrs_name)].reset_index(
+                        drop=True
+                    ),
+                    "concentration": 1.0,
+                }
+            )
+            return correction_factor_set_to_one.set_index("native").squeeze()
+        else:
+            # else calculate the correction factors
+            AVG_native_concentration_in_qc = (
+                self.calculate_measured_qc_concentration().mean(axis="columns")
+            )
+            theoretical_native_concentration_in_qc = self.data.qc_file.set_index(
+                "native"
+            ).squeeze()
+            correction_factor = theoretical_native_concentration_in_qc.div(
+                AVG_native_concentration_in_qc
+            )
 
-        return correction_factor.mask(correction_factor <= 0, 1)
+            return correction_factor.mask(correction_factor <= 0, 1)
 
     def plot_correction_factor(self, sort_values=False):
         fig, ax = plt.subplots()

@@ -17,6 +17,10 @@ class Recovery(common_operations.BaseCalculator):
         super().__init__(data)
 
     def calculate_response_factor(self) -> pd.DataFrame:
+        if self.data.is_concentration_file is None:
+            raise ValueError(
+                "The file containing ISRS concentration values is missing. Please provide the file and try again."
+            )
         is_rs_amount = self.get_is_rs_amount()
 
         is_area = self.get_sample_areas_by_sample_type("isrs").loc[
@@ -36,6 +40,10 @@ class Recovery(common_operations.BaseCalculator):
         return response_factor
 
     def plot_response_factor(self, by_sample=False):
+        if self.data.is_concentration_file is None:
+            raise ValueError(
+                "The file containing ISRS concentration values is missing. Please provide the file and try again."
+            )
         fig, ax = plt.subplots()
         if by_sample:
             plot = self.calculate_response_factor().boxplot(ax=ax, rot=90)
@@ -47,6 +55,10 @@ class Recovery(common_operations.BaseCalculator):
         return plot
 
     def calculate_recovery(self) -> pd.DataFrame:
+        if self.data.is_concentration_file is None:
+            raise ValueError(
+                "The file containing ISRS concentration values is missing. Please provide the file and try again."
+            )
         mean_response_factor = self.calculate_response_factor().mean(axis="columns")
         is_rs_amount = self.get_is_rs_amount()
 
@@ -66,6 +78,10 @@ class Recovery(common_operations.BaseCalculator):
         return is_masses.div(is_rs_amount["is_amount"], axis="index").mul(100)
 
     def plot_recovery(self, by_sample=True):
+        if self.data.is_concentration_file is None:
+            raise ValueError(
+                "The file containing ISRS concentration values is missing. Please provide the file and try again."
+            )
         fig, ax = plt.subplots()
         if by_sample:
             plot = self.calculate_recovery().boxplot(ax=ax, rot=90)
