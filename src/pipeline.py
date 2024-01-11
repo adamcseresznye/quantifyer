@@ -59,4 +59,6 @@ class Pipeline:
         if plot_function:
             plot_function(**kwargs)
         else:
-            print(f"No plot function found for {plot_name}.")
+            print(
+                f"No plot function found for {plot_name}. Valid arguments: {', '.join(list(self.plot_functions.keys()))}."
+            )
