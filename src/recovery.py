@@ -4,6 +4,8 @@ This module provides functions for calculating the response factors (RF) and
 recoveries from ISRS, blanks, QCs and study samples.
 """
 
+from typing import Any
+
 import matplotlib.pylab as plt
 import pandas as pd
 
@@ -17,6 +19,13 @@ class Recovery(common_operations.BaseCalculator):
         super().__init__(data)
 
     def calculate_response_factor(self) -> pd.DataFrame:
+        """
+        Calculates the response factor based on ISRS concentration values.
+
+        :return: A pandas DataFrame containing the calculated response factor.
+        :rtype: pd.DataFrame
+        :raises ValueError: If the file containing ISRS concentration values is missing.
+        """
         if self.data.is_concentration_file is None:
             raise ValueError(
                 "The file containing ISRS concentration values is missing. Please provide the file and try again."
@@ -39,7 +48,18 @@ class Recovery(common_operations.BaseCalculator):
 
         return response_factor
 
-    def plot_response_factor(self, by_sample=False):
+    def plot_response_factor(self, by_sample=False) -> Any:
+        """
+        Plots the response factor.
+
+        Args:
+            by_sample (bool): If True, the response factor is plotted by sample.
+                              If False, it is plotted by column.
+
+        Returns:
+            Any: The plot object.
+        """
+
         if self.data.is_concentration_file is None:
             raise ValueError(
                 "The file containing ISRS concentration values is missing. Please provide the file and try again."
@@ -55,6 +75,15 @@ class Recovery(common_operations.BaseCalculator):
         return plot
 
     def calculate_recovery(self) -> pd.DataFrame:
+        """
+        Calculate the recovery of the IS (Internal Standard) masses in the sample.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the calculated recovery of the IS masses.
+
+        Raises:
+            ValueError: If the file containing ISRS concentration values is missing.
+        """
         if self.data.is_concentration_file is None:
             raise ValueError(
                 "The file containing ISRS concentration values is missing. Please provide the file and try again."
@@ -77,7 +106,20 @@ class Recovery(common_operations.BaseCalculator):
 
         return is_masses.div(is_rs_amount["is_amount"], axis="index").mul(100)
 
-    def plot_recovery(self, by_sample=True):
+    def plot_recovery(self, by_sample=True) -> Any:
+        """
+        Generate a boxplot of the recovery percentages.
+
+        Args:
+            by_sample (bool, optional): If True, generate the boxplot by sample.
+                                        If False, generate the boxplot by concentration. Defaults to True.
+
+        Raises:
+            ValueError: If the file containing ISRS concentration values is missing.
+
+        Returns:
+            Any: The boxplot object.
+        """
         if self.data.is_concentration_file is None:
             raise ValueError(
                 "The file containing ISRS concentration values is missing. Please provide the file and try again."
