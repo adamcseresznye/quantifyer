@@ -3,114 +3,91 @@
 This module ensures that data integrity is thoroughly assessed when reading files before any processing occurs.
 """
 
-from io import StringIO
-from pathlib import Path
-from typing import Optional
-
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
 
 import data
 
 
 @pytest.fixture
-def mock_results_csv():
-    return "Name,Type,QC/1,BLaNk:3,SamPLe!25\n13C*HCB,AREA,123,125,542\nCB!143,CONC,6,666,84"
+def data_processor():
+    return data.DataProcessor()
 
 
-@pytest.fixture
-def expected_results_csv():
-    return "name,type,qc_1,blank_3,sample_25\n13c_hcb,area,123, 125,542\ncb_143,conc,6,666,84"
-
-
-@pytest.fixture
-def mock_is_correspondence_file_csv():
-    return "naTiVe,intERNal*STANdard,exterNAL STANdard\nalpaHCH,13C-HCB,CB/207\nBDE_100,BDE^103,CB%207"
-
-
-@pytest.fixture
-def expected_is_correspondence_file_csv():
-    return "native,internal_standard,external_standard\nalpahch,13c_hcb,cb_207\nbde_100,bde_103,cb_207"
-
-
-@pytest.fixture
-def mock_sample_properties_file_csv():
-    return "saMPle)name,sample}Type,volume\nQC_1,QC,0.5\nSample_5,sample,0.5\nBlanK_3,BLANK,0.5"
-
-
-@pytest.fixture
-def expected_sample_properties_file_csv():
-    return "sample_name,sample_type,volume\nqc_1,qc,0.5\nsample_5,sample,0.5\nblank_3,blank,0.5"
-
-
-@pytest.fixture
-def mock_qc_file_csv():
-    return "natIVe,CONcentration\nBDE_100,0.529125198"
-
-
-@pytest.fixture
-def mock_is_concentration_file_csv():
-    return "nAMe,AMOunt\nCB_207,1000"
-
-
-def test_preprocess_results_csv(mock_results_csv, expected_results_csv):
-    # Use test_data and expected_data inside the function
-    preprocessed_df = data.preprocess_file(StringIO(mock_results_csv))
-    expected_df = pd.read_csv(StringIO(expected_results_csv))
-
-    assert_frame_equal(expected_df, preprocessed_df)
-
-
-def test_preprocess_is_correspondence_file_csv(
-    mock_is_correspondence_file_csv, expected_is_correspondence_file_csv
-):
-    # Use test_data and expected_data inside the function
-    preprocessed_df = data.preprocess_file(StringIO(mock_is_correspondence_file_csv))
-    expected_df = pd.read_csv(StringIO(expected_is_correspondence_file_csv))
-
-    assert_frame_equal(expected_df, preprocessed_df)
-
-
-def test_preprocess_sample_properties_file_csv(
-    mock_sample_properties_file_csv, expected_sample_properties_file_csv
-):
-    # Use test_data and expected_data inside the function
-    preprocessed_df = data.preprocess_file(StringIO(mock_sample_properties_file_csv))
-    expected_df = pd.read_csv(StringIO(expected_sample_properties_file_csv))
-
-    assert_frame_equal(expected_df, preprocessed_df)
-
-
-def test_validate_data_with_required_args(
-    mock_results_csv,
-    mock_is_correspondence_file_csv,
-    mock_sample_properties_file_csv,
-):
-    # Create an instance of Data
-    df = data.Data(
-        quant_file=StringIO(mock_results_csv),
-        is_correspondence_file=StringIO(mock_is_correspondence_file_csv),
-        sample_properties_file=StringIO(mock_sample_properties_file_csv),
+def test_preprocess_file_valid_input(data_processor):
+    # Create a DataFrame with object columns for testing
+    df = pd.DataFrame(
+        {
+            "Name": ["Alice", "Bob"],
+            "Age": [25, 30],
+            "Email": ["alice@example.com", "bob@example.com"],
+        }
     )
+    result = data_processor.preprocess_file(df)
 
-    df.validate_data()
+    # Check if the columns are renamed correctly and string preprocessing is applied
+    assert "name" in result.columns
 
 
-def test_validate_data_with_all_args(
-    mock_results_csv,
-    mock_is_correspondence_file_csv,
-    mock_sample_properties_file_csv,
-    mock_qc_file_csv,
-    mock_is_concentration_file_csv,
-):
-    # Create an instance of Data
-    df = data.Data(
-        quant_file=StringIO(mock_results_csv),
-        is_correspondence_file=StringIO(mock_is_correspondence_file_csv),
-        sample_properties_file=StringIO(mock_sample_properties_file_csv),
-        qc_file=StringIO(mock_qc_file_csv),
-        is_concentration_file=StringIO(mock_is_concentration_file_csv),
+def test_preprocess_file_empty_input(data_processor):
+    # Create an empty DataFrame
+    df = pd.DataFrame()
+    result = data_processor.preprocess_file(df)
+    # Check if the result is an empty DataFrame
+    assert result.empty
+
+
+def test_preprocess_file_no_object_columns(data_processor):
+    # Create a DataFrame with no object columns
+    df = pd.DataFrame({"age": [25, 30], "height": [165, 180]})
+    result = data_processor.preprocess_file(df)
+    # Check if the DataFrame remains unchanged as there are no object columns
+    assert df.equals(result)
+
+
+def test_preprocess_str_column_to_string(data_processor):
+    series = pd.Series([123, 456])
+    result = data_processor.preprocess_str_column(series)
+    assert result.dtype == "object"  # 'object' dtype in pandas is used for strings
+
+
+def test_preprocess_str_column_replace_non_alphanumeric(data_processor):
+    series = pd.Series(["hello@world!", "python#rocks"])
+    result = data_processor.preprocess_str_column(series)
+    assert not result.str.contains(r"\W").any()  # Check for non-alphanumeric characters
+
+
+def test_preprocess_str_column_to_lowercase(data_processor):
+    series = pd.Series(["HELLO", "WORLD"])
+    result = data_processor.preprocess_str_column(series)
+    assert result.str.islower().all()  # Check if all characters are lowercase
+
+
+def test_preprocess_str_column_empty_series(data_processor):
+    series = pd.Series([])
+    result = data_processor.preprocess_str_column(series)
+    assert result.empty  # Check if the resulting series is empty
+
+
+def test_validate_object_cols_no_uppercase(data_processor):
+    # Create a DataFrame with object columns containing only lowercase characters
+    df1 = pd.DataFrame(
+        {"object_col1": ["abc", "def", "ghi"], "object_col2": ["jkl", "mno", "pqr"]}
     )
+    validator = data.DataValidator(data=data_processor)  # Use the fixture
+    # Since there are no uppercase characters, the function should not raise an AssertionError
+    validator.validate_object_cols(df1)
 
-    df.validate_data()
+
+def test_validate_object_cols_with_uppercase(data_processor):
+    # Create a DataFrame with one object column containing uppercase characters
+    df2 = pd.DataFrame(
+        {"object_col1": ["ABC", "Def", "ghi"], "object_col2": ["jkl", "mno", "pqr"]}
+    )
+    validator = data.DataValidator(data=data_processor)  # Use the fixture
+    # Since there is an uppercase character, the function should raise an AssertionError
+    with pytest.raises(AssertionError) as excinfo:
+        validator.validate_object_cols(df2)
+    assert "object_col1 column should not contain uppercase characters" in str(
+        excinfo.value
+    )

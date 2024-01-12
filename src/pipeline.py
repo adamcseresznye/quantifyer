@@ -113,6 +113,7 @@ class MassBasedCalculator(CalculationStrategy):
         Parameters:
             plot_name (str): The name of the plot to display.
             **kwargs: Valid arguments: recovery, response_factor, correction_factor, concentration.
+            by_sample (bool, optional): If True, plot by sample. If False, plot by analyte.
 
         Returns:
             Any: The return value of the plot function.
