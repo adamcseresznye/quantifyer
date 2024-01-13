@@ -88,7 +88,7 @@ class MassBasedCalculator(CalculationStrategy):
         Returns a tuple of three Pandas DataFrames: `recovery`, `correction_factors`, and `concentrations`.
         """
         # Step 1: Validate the data
-        self.data_validator.validate_data()
+        self.data_validator.validate()
 
         # Initialize recovery as None and return if no is_concentration_file provided
         recovery = None

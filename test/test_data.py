@@ -69,25 +69,19 @@ def test_preprocess_str_column_empty_series(data_processor):
     assert result.empty  # Check if the resulting series is empty
 
 
-def test_validate_object_cols_no_uppercase(data_processor):
-    # Create a DataFrame with object columns containing only lowercase characters
-    df1 = pd.DataFrame(
-        {"object_col1": ["abc", "def", "ghi"], "object_col2": ["jkl", "mno", "pqr"]}
-    )
-    validator = data.DataValidator(data=data_processor)  # Use the fixture
-    # Since there are no uppercase characters, the function should not raise an AssertionError
-    validator.validate_object_cols(df1)
+def test_validate_data_structure_all_correct(data_processor):
+    # Test case 1: All attributes have correct columns
+    dfs = {
+        "quant_file": pd.DataFrame({"name": [], "type": []}),
+        "is_correspondence_file": pd.DataFrame(
+            {"native": [], "internal_standard": [], "external_standard": []}
+        ),
+        "sample_properties_file": pd.DataFrame(
+            {"sample_name": [], "sample_type": [], "volume": []}
+        ),
+        "qc_file": pd.DataFrame({"native": [], "concentration": []}),
+        "is_concentration_file": pd.DataFrame({"name": [], "amount": []}),
+    }
 
-
-def test_validate_object_cols_with_uppercase(data_processor):
-    # Create a DataFrame with one object column containing uppercase characters
-    df2 = pd.DataFrame(
-        {"object_col1": ["ABC", "Def", "ghi"], "object_col2": ["jkl", "mno", "pqr"]}
-    )
-    validator = data.DataValidator(data=data_processor)  # Use the fixture
-    # Since there is an uppercase character, the function should raise an AssertionError
-    with pytest.raises(AssertionError) as excinfo:
-        validator.validate_object_cols(df2)
-    assert "object_col1 column should not contain uppercase characters" in str(
-        excinfo.value
-    )
+    result = data_processor.preprocess_file(**dfs)
+    data.DataValidator.validate_data_structure(result)
