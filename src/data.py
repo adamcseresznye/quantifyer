@@ -88,11 +88,11 @@ class DataValidator:
         self.data = data
 
     def validate(self):
-        self.validate_data_structure()
-        self.validate_col_names()
-        self.validate_object_cols()
+        self.validate_column_names_present_in_dataframe()
+        self.validate_col_name_lowercase()
+        self.validate_lower_case_in_object_col()
 
-    def validate_data_structure(self):
+    def validate_column_names_present_in_dataframe(self):
         attributes = {
             "quant_file": ["name", "type"],
             "is_correspondence_file": [
@@ -113,13 +113,13 @@ class DataValidator:
                         f"Missing columns in {attribute}: {missing_columns}"
                     )
 
-    def validate_col_names(self):
+    def validate_col_name_lowercase(self):
         for df in self.data.__dict__.values():
             if isinstance(df, pd.DataFrame):
                 if not df.columns.str.islower().all():
                     raise DataValidationError("Column names should be lowercase.")
 
-    def validate_object_cols(self):
+    def validate_lower_case_in_object_col(self):
         for df in self.data.__dict__.values():
             if isinstance(df, pd.DataFrame):
                 for column in df.select_dtypes(include="object"):

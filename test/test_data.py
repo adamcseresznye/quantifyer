@@ -3,6 +3,8 @@
 This module ensures that data integrity is thoroughly assessed when reading files before any processing occurs.
 """
 
+from io import StringIO
+
 import pandas as pd
 import pytest
 
@@ -12,6 +14,21 @@ import data
 @pytest.fixture
 def data_processor():
     return data.DataProcessor()
+
+
+# Fixture to initialize Data object
+@pytest.fixture
+def data_obj():
+    example_data = {
+        "quant_file": StringIO("Name,type"),
+        "is_correspondence_file": StringIO(
+            "native,internal_standard,external_standard"
+        ),
+        "sample_properties_file": StringIO("sample_name,sample_type,volume"),
+        "qc_file": StringIO("native,concentration"),
+        "is_concentration_file": StringIO("name,amount"),
+    }
+    return data.Data(**example_data)
 
 
 def test_preprocess_file_valid_input(data_processor):
@@ -26,7 +43,11 @@ def test_preprocess_file_valid_input(data_processor):
     result = data_processor.preprocess_file(df)
 
     # Check if the columns are renamed correctly and string preprocessing is applied
-    assert "name" in result.columns
+    assert (
+        "name" in result.columns
+        and "age" in result.columns
+        and "email" in result.columns
+    )
 
 
 def test_preprocess_file_empty_input(data_processor):
@@ -69,19 +90,65 @@ def test_preprocess_str_column_empty_series(data_processor):
     assert result.empty  # Check if the resulting series is empty
 
 
-def test_validate_data_structure_all_correct(data_processor):
-    # Test case 1: All attributes have correct columns
-    dfs = {
-        "quant_file": pd.DataFrame({"name": [], "type": []}),
-        "is_correspondence_file": pd.DataFrame(
-            {"native": [], "internal_standard": [], "external_standard": []}
-        ),
-        "sample_properties_file": pd.DataFrame(
-            {"sample_name": [], "sample_type": [], "volume": []}
-        ),
-        "qc_file": pd.DataFrame({"native": [], "concentration": []}),
-        "is_concentration_file": pd.DataFrame({"name": [], "amount": []}),
-    }
+def test_validate_data_structure_all_correct(data_obj):
+    data.DataValidator(
+        data_obj
+    ).validate()  # Check if all attributes have correct columns
 
-    result = data_processor.preprocess_file(**dfs)
-    data.DataValidator.validate_data_structure(result)
+
+def test_missing_columns_in_quant_file(data_obj):
+    data_obj.quant_file = pd.DataFrame({"name": []})
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate()  # Testing for missing columns in quant_file
+
+
+def test_missing_columns_in_is_correspondence_file(data_obj):
+    data_obj.is_correspondence_file = pd.DataFrame(
+        {"native": [], "internal_standard": []}
+    )
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate()  # Testing for missing columns in is_correspondence_file
+
+
+def test_missing_columns_in_sample_properties_file(data_obj):
+    data_obj.sample_properties_file = pd.DataFrame(
+        {"sample_name": [], "sample_type": []}
+    )
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate()  # Testing for missing columns in sample_properties_file
+
+
+def test_missing_columns_in_qc_file(data_obj):
+    data_obj.qc_file = pd.DataFrame({"native": []})
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate()  # Testing for missing columns in qc_file
+
+
+def test_missing_columns_in_is_concentration_file(data_obj):
+    data_obj.is_concentration_file = pd.DataFrame({"name": []})
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate()  # Testing for missing columns in is_concentration_file
+
+
+def test_validate_col_names_not_all_lower(data_obj):
+    data_obj.is_concentration_file = pd.DataFrame({"AMOUNT": [], "NaME": []})
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate()  # Testing for non-lowercase column names
+
+
+def test_validate_col_names_empty(data_obj):
+    data_obj.is_concentration_file = pd.DataFrame()
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(data_obj).validate()  # Testing for empty column names
