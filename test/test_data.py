@@ -31,6 +31,11 @@ def data_obj():
     return data.Data(**example_data)
 
 
+################################################
+# Test the preprocess_file method
+################################################
+
+
 def test_preprocess_file_valid_input(data_processor):
     # Create a DataFrame with object columns for testing
     df = pd.DataFrame(
@@ -66,6 +71,11 @@ def test_preprocess_file_no_object_columns(data_processor):
     assert df.equals(result)
 
 
+################################################
+# test the preprocess_str_column method
+################################################
+
+
 def test_preprocess_str_column_to_string(data_processor):
     series = pd.Series([123, 456])
     result = data_processor.preprocess_str_column(series)
@@ -90,10 +100,15 @@ def test_preprocess_str_column_empty_series(data_processor):
     assert result.empty  # Check if the resulting series is empty
 
 
+################################################
+# test validate_column_names_in_dataframe method
+################################################
+
+
 def test_validate_data_structure_all_correct(data_obj):
     data.DataValidator(
         data_obj
-    ).validate()  # Check if all attributes have correct columns
+    ).validate_column_names_in_dataframe()  # Check if all attributes have correct columns
 
 
 def test_missing_columns_in_quant_file(data_obj):
@@ -101,7 +116,7 @@ def test_missing_columns_in_quant_file(data_obj):
     with pytest.raises(data.DataValidationError):
         data.DataValidator(
             data_obj
-        ).validate()  # Testing for missing columns in quant_file
+        ).validate_column_names_in_dataframe()  # Testing for missing columns in quant_file
 
 
 def test_missing_columns_in_is_correspondence_file(data_obj):
@@ -111,7 +126,7 @@ def test_missing_columns_in_is_correspondence_file(data_obj):
     with pytest.raises(data.DataValidationError):
         data.DataValidator(
             data_obj
-        ).validate()  # Testing for missing columns in is_correspondence_file
+        ).validate_column_names_in_dataframe()  # Testing for missing columns in is_correspondence_file
 
 
 def test_missing_columns_in_sample_properties_file(data_obj):
@@ -121,7 +136,7 @@ def test_missing_columns_in_sample_properties_file(data_obj):
     with pytest.raises(data.DataValidationError):
         data.DataValidator(
             data_obj
-        ).validate()  # Testing for missing columns in sample_properties_file
+        ).validate_column_names_in_dataframe()  # Testing for missing columns in sample_properties_file
 
 
 def test_missing_columns_in_qc_file(data_obj):
@@ -129,15 +144,19 @@ def test_missing_columns_in_qc_file(data_obj):
     with pytest.raises(data.DataValidationError):
         data.DataValidator(
             data_obj
-        ).validate()  # Testing for missing columns in qc_file
+        ).validate_column_names_in_dataframe()  # Testing for missing columns in qc_file
 
 
 def test_missing_columns_in_is_concentration_file(data_obj):
-    data_obj.is_concentration_file = pd.DataFrame({"name": []})
-    with pytest.raises(data.DataValidationError):
-        data.DataValidator(
-            data_obj
-        ).validate()  # Testing for missing columns in is_concentration_file
+    data_obj.is_concentration_file = pd.DataFrame({"Name": []})
+    data.DataValidator(
+        data_obj
+    ).validate_lower_case_in_object_col()  # Testing for missing columns in is_concentration_file
+
+
+################################################
+# validate_lower_case_in_object_col
+################################################
 
 
 def test_validate_col_names_not_all_lower(data_obj):
@@ -148,7 +167,48 @@ def test_validate_col_names_not_all_lower(data_obj):
         ).validate()  # Testing for non-lowercase column names
 
 
-def test_validate_col_names_empty(data_obj):
-    data_obj.is_concentration_file = pd.DataFrame()
+################################################
+# validate_is_concentration_file_has_is_rs
+################################################
+
+
+def test_validate_is_concentration_file_has_is_rs(data_obj):
+    data_obj.is_concentration_file = pd.DataFrame({"is_name": ["is_1"]})
     with pytest.raises(data.DataValidationError):
-        data.DataValidator(data_obj).validate()  # Testing for empty column names
+        data.DataValidator(
+            data_obj
+        ).validate_is_concentration_file_has_is_rs()  # Testing is_concentration_file has IS and RS
+
+
+################################################
+# validate_quant_file_has_area_concentration
+################################################
+
+
+def test_validate_quant_file_has_no_area_concentration(data_obj):
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate_quant_file_has_area_concentration()  # Testing quant_file has no area or concentration
+
+
+################################################
+# validate_df_not_empty
+################################################
+
+
+def test_validate_df_not_empty(data_obj):
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(
+            data_obj
+        ).validate_df_not_empty()  # Testing if dfs are not empty
+
+
+################################################
+# test overall validate pipeline
+################################################
+
+
+def test_validate_pipeline(data_obj):
+    with pytest.raises(data.DataValidationError):
+        data.DataValidator(data_obj).validate()  # Testing overal validation pipeline

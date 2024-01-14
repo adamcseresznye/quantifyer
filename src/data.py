@@ -11,6 +11,8 @@ from typing import Optional
 
 import pandas as pd
 
+import common_operations
+
 
 @dataclass
 class Data:
@@ -88,11 +90,13 @@ class DataValidator:
         self.data = data
 
     def validate(self):
-        self.validate_column_names_present_in_dataframe()
-        self.validate_col_name_lowercase()
+        self.validate_column_names_in_dataframe()
         self.validate_lower_case_in_object_col()
+        self.validate_is_concentration_file_has_is_rs()
+        self.validate_quant_file_has_area_concentration()
+        self.validate_df_not_empty()
 
-    def validate_column_names_present_in_dataframe(self):
+    def validate_column_names_in_dataframe(self):
         attributes = {
             "quant_file": ["name", "type"],
             "is_correspondence_file": [
@@ -113,12 +117,6 @@ class DataValidator:
                         f"Missing columns in {attribute}: {missing_columns}"
                     )
 
-    def validate_col_name_lowercase(self):
-        for df in self.data.__dict__.values():
-            if isinstance(df, pd.DataFrame):
-                if not df.columns.str.islower().all():
-                    raise DataValidationError("Column names should be lowercase.")
-
     def validate_lower_case_in_object_col(self):
         for df in self.data.__dict__.values():
             if isinstance(df, pd.DataFrame):
@@ -127,3 +125,31 @@ class DataValidator:
                         raise DataValidationError(
                             f"{column} column should not contain uppercase characters"
                         )
+
+    def validate_is_concentration_file_has_is_rs(self):
+        if self.data.is_concentration_file is not None:
+            # Check if 'is_concentration_file' contains both IS and RS
+            isrs_name_dict = common_operations.BaseCalculator(
+                self.data
+            ).get_is_rs_name()
+            isrs_flattened_list = [x for v in isrs_name_dict.values() for x in v]
+            if len(isrs_flattened_list) == 0:
+                raise DataValidationError(
+                    "No IS and RS found in 'is_concentration_file'"
+                )
+
+    def validate_quant_file_has_area_concentration(self):
+        # Check if all rows contain 'area' or 'concentration' in the 'type' column
+        if (
+            self.data.quant_file.type.empty
+            or not self.data.quant_file.type.str.contains("area|concentration").all()
+        ):
+            raise DataValidationError(
+                "All rows should contain 'area' or 'concentration' in the 'type' column"
+            )
+
+    def validate_df_not_empty(self):
+        for df in self.data.__dict__.values():
+            if isinstance(df, pd.DataFrame):
+                if df.empty:
+                    raise DataValidationError(f"{df.name} is empty")
