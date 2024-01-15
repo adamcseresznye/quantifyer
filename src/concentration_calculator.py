@@ -13,7 +13,7 @@ import common_operations
 
 
 class ConcentrationCalculator(common_operations.BaseCalculator):
-    def __init__(self, data, correction_factor=None):
+    def __init__(self, data, correction_factor):
         super().__init__(data)
         self.correction_factor = correction_factor
 
