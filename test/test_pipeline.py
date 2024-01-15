@@ -47,10 +47,10 @@ def calculator(data_obj):
     data_validator = data.DataValidator(data_obj)
     recovery_calculator = recovery.Recovery(data_obj)
     correction_factor_calculator = qc.CorrectionFactor(data_obj)
-    concentration_calc = concentration_calculator.ConcentrationCalculator(
+    concentration_calc = concentration_calculator.MassBasedConcentrationCalculator(
         data_obj, correction_factor_calculator.calculate_correction_factor()
     )
-    return pipeline.MassBasedCalculator(
+    return pipeline.MassBasedCalculatorPipeline(
         data_obj,
         data_validator,
         recovery_calculator,

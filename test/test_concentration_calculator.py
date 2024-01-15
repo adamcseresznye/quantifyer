@@ -40,9 +40,11 @@ def data_obj():
 
 
 def test_calculate_concentration_with_QC(data_obj):
-    calculated_concentration = concentration_calculator.ConcentrationCalculator(
-        data_obj, qc.CorrectionFactor(data_obj).calculate_correction_factor()
-    ).calculate_concentration()
+    calculated_concentration = (
+        concentration_calculator.MassBasedConcentrationCalculator(
+            data_obj, qc.CorrectionFactor(data_obj).calculate_correction_factor()
+        ).calculate_concentration()
+    )
     expected_concentration = np.array([89.98, 89.98, 89.98])
     assert np.isclose(
         calculated_concentration, expected_concentration
@@ -51,9 +53,11 @@ def test_calculate_concentration_with_QC(data_obj):
 
 def test_calculate_concentration_without_QC(data_obj):
     del data_obj.qc_file
-    calculated_concentration = concentration_calculator.ConcentrationCalculator(
-        data_obj, qc.CorrectionFactor(data_obj).calculate_correction_factor()
-    ).calculate_concentration()
+    calculated_concentration = (
+        concentration_calculator.MassBasedConcentrationCalculator(
+            data_obj, qc.CorrectionFactor(data_obj).calculate_correction_factor()
+        ).calculate_concentration()
+    )
     expected_concentration = np.array([89.8, 89.8, 89.8])
     assert np.isclose(
         calculated_concentration, expected_concentration

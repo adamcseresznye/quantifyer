@@ -29,7 +29,7 @@ class CalculationStrategy(ABC):
         pass
 
 
-class MassBasedCalculator(CalculationStrategy):
+class MassBasedCalculatorPipeline(CalculationStrategy):
     """
     Initializes an instance of the class.
 
@@ -127,7 +127,7 @@ class MassBasedCalculator(CalculationStrategy):
             )
 
 
-class Pipeline:
+class StrategySelector:
     def __init__(self, strategy: CalculationStrategy):
         self.strategy = strategy
 
@@ -153,11 +153,11 @@ dfs = data.Data(**file_paths)
 data_validator = data.DataValidator(dfs)
 recovery_calculator = recovery.Recovery(dfs)
 correction_factor_calculator = qc.CorrectionFactor(dfs)
-concentration_calc = concentration_calculator.ConcentrationCalculator(
+concentration_calc = concentration_calculator.MassBasedConcentrationCalculator(
     dfs, correction_factor_calculator.calculate_correction_factor()
 )
 
-mass_based_calculator = MassBasedCalculator(
+mass_based_calculator = MassBasedCalculatorPipeline(
     dfs,
     data_validator,
     recovery_calculator,
@@ -165,7 +165,7 @@ mass_based_calculator = MassBasedCalculator(
     concentration_calc,
 )
 
-pipeline = Pipeline(mass_based_calculator)
+pipeline = StrategySelector(mass_based_calculator)
 
 results = pipeline.execute()
 results
