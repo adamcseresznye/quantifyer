@@ -73,8 +73,8 @@ class CorrectionFactor(common_operations.BaseCalculator):
             theoretical_native_concentration_in_qc = self.data.qc_file.set_index(
                 "native"
             ).squeeze()
-            correction_factor = theoretical_native_concentration_in_qc.div(
-                AVG_native_concentration_in_qc
+            correction_factor = (
+                theoretical_native_concentration_in_qc / AVG_native_concentration_in_qc
             )
 
             return correction_factor.mask(correction_factor <= 0, 1)

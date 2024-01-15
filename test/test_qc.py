@@ -1,5 +1,4 @@
-"""A module for testing the recovery.py module."""
-
+"""A module for testing the qc.py module."""
 
 from io import StringIO
 
@@ -8,7 +7,7 @@ import pandas as pd
 import pytest
 
 import data
-import recovery
+import qc
 
 
 # Fixture to initialize Data object
@@ -33,41 +32,28 @@ def data_obj():
 
 
 ################################################
-# calculate_response_factor
+# calculate_measured_qc_concentration
 ################################################
 
 
-def test_calculate_response_factor_missing_file(data_obj):
-    del data_obj.is_concentration_file
-    with pytest.raises(ValueError):
-        recovery.Recovery(
-            data_obj
-        ).calculate_response_factor()  # tests if exception is raised when is_concentration_file is missing
-
-
-def test_calculate_response_factor(data_obj):
+def test_calculate_measured_qc_concentration(data_obj):
+    calculated_qc_concentrations = (
+        qc.CorrectionFactor(data_obj).calculate_measured_qc_concentration().values
+    )
+    expected_qc_concentrations = np.array([0.0998, 0.0998, 0.0998])
     assert (
-        recovery.Recovery(data_obj).calculate_response_factor().values
-        == [0.2, 0.4, 0.6]
-    ).all()  # tests if response factor is calculated correctly for all samples
+        calculated_qc_concentrations == expected_qc_concentrations
+    ).all()  # test if measured qc concentrations are calculated correctly
 
 
 ################################################
-# calculate_recovery
+# calculate_correction_factor
 ################################################
 
 
-def test_calculate_recovery_missing_file(data_obj):
-    del data_obj.is_concentration_file
-    with pytest.raises(ValueError):
-        recovery.Recovery(
-            data_obj
-        ).calculate_recovery()  # tests if exception is raised when is_concentration_file is missing
-
-
-def test_calculate_recovery(data_obj):
-    calculated_recovery = recovery.Recovery(data_obj).calculate_recovery()
-    expected_recovery = np.array([50.0, 100, 150, 50, 100, 150, 50, 100, 150])
-    assert np.isclose(
-        calculated_recovery, expected_recovery
-    ).all()  # tests if all recoveries are calculated correctly for all samples
+def test_calculate_correction_factor(data_obj):
+    calculated_correction_factor = (
+        qc.CorrectionFactor(data_obj).calculate_correction_factor().values
+    )
+    expected_qc_correction_factor = np.array([1.002])
+    assert np.isclose(calculated_correction_factor, expected_qc_correction_factor).all()
