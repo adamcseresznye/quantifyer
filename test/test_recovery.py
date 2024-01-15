@@ -3,6 +3,7 @@
 
 from io import StringIO
 
+import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 import pytest
@@ -60,6 +61,24 @@ def test_calculate_response_factor(data_obj):
 
 
 ################################################
+# plot_response_factor
+################################################
+
+
+def test_plot_response_factor_missing_file(data_obj):
+    del data_obj.is_concentration_file
+    with pytest.raises(ValueError):
+        recovery.Recovery(
+            data_obj
+        ).plot_response_factor()  # tests if exception is raised when is_concentration_file is missing
+
+
+def test_plot_response_factor(data_obj):
+    with plt.ion():
+        recovery.Recovery(data_obj).plot_response_factor()
+
+
+################################################
 # calculate_recovery
 ################################################
 
@@ -78,3 +97,21 @@ def test_calculate_recovery(data_obj):
     assert np.isclose(
         calculated_recovery, expected_recovery
     ).all()  # tests if all recoveries are calculated correctly for all samples
+
+
+################################################
+# plot_recovery
+################################################
+
+
+def test_plot_recovery_missing_file(data_obj):
+    del data_obj.is_concentration_file
+    with pytest.raises(ValueError):
+        recovery.Recovery(
+            data_obj
+        ).plot_recovery()  # tests if exception is raised when is_concentration_file is missing
+
+
+def test_plot_recovery(data_obj):
+    with plt.ion():
+        recovery.Recovery(data_obj).plot_recovery()

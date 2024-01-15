@@ -2,6 +2,7 @@
 
 from io import StringIO
 
+import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 import pytest
@@ -62,3 +63,12 @@ def test_calculate_concentration_without_QC(data_obj):
     assert np.isclose(
         calculated_concentration, expected_concentration
     ).all()  # test that the calculated concentration is equal to the expected concentration if QC is not present (ie: correction factor is 1)
+
+
+def test_plot_concentration(data_obj):
+    with plt.ion():
+        calculated_concentration = (
+            concentration_calculator.MassBasedConcentrationCalculator(
+                data_obj, qc.CorrectionFactor(data_obj).calculate_correction_factor()
+            ).plot_concentration()
+        )
