@@ -19,7 +19,7 @@ def data_processor():
 # Fixture to initialize Data object
 @pytest.fixture
 def data_obj():
-    example_data = {
+    test_data = {
         "quant_file": StringIO("Name,type"),
         "is_correspondence_file": StringIO(
             "native,internal_standard,external_standard"
@@ -28,11 +28,11 @@ def data_obj():
         "qc_file": StringIO("native,concentration"),
         "is_concentration_file": StringIO("name,amount"),
     }
-    return data.Data(**example_data)
+    return data.Data(**test_data)
 
 
 ################################################
-# Test the preprocess_file method
+# preprocess_file
 ################################################
 
 
@@ -72,7 +72,7 @@ def test_preprocess_file_no_object_columns(data_processor):
 
 
 ################################################
-# test the preprocess_str_column method
+# preprocess_str_column
 ################################################
 
 
@@ -101,7 +101,7 @@ def test_preprocess_str_column_empty_series(data_processor):
 
 
 ################################################
-# test validate_column_names_in_dataframe method
+# validate_column_names_in_dataframe
 ################################################
 
 
