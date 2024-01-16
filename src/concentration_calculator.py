@@ -41,9 +41,9 @@ class MassBasedConcentrationCalculator(common_operations.BaseCalculator):
             .div(self.get_sample_volume_by_sample_type("sample"))
         )
 
-        return concentrations.mask(concentrations <= 0, 1)
+        return concentrations.mask(concentrations <= 0, 0)
 
-    def plot_concentration(self, by_sample=False) -> Any:
+    def plot_concentration(self, by_sample=False, figsize=(5, 5)) -> Any:
         """
         Plot the concentration of the samples.
 
@@ -54,7 +54,7 @@ class MassBasedConcentrationCalculator(common_operations.BaseCalculator):
         Returns:
             Any: The matplotlib plot object.
         """
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=figsize)
         if by_sample:
             plot = self.calculate_concentration().boxplot(ax=ax, rot=90)
         else:
@@ -62,4 +62,5 @@ class MassBasedConcentrationCalculator(common_operations.BaseCalculator):
         ax.set_title("Concentration")
         ax.set_ylabel("Concentration (pg/ml)")
         ax.grid(False)
+        fig.tight_layout()
         return plot

@@ -75,11 +75,11 @@ class CorrectionFactor(common_operations.BaseCalculator):
             ).squeeze()
             correction_factor = (
                 theoretical_native_concentration_in_qc / AVG_native_concentration_in_qc
-            )
+            ).fillna(1)
 
             return correction_factor.mask(correction_factor <= 0, 1)
 
-    def plot_correction_factor(self, sort_values=False) -> Any:
+    def plot_correction_factor(self, sort_values=False, figsize=(5, 5)) -> Any:
         """
         Generates a bar plot of the correction factors calculated by the calculate_correction_factor() method.
 
@@ -90,7 +90,7 @@ class CorrectionFactor(common_operations.BaseCalculator):
         Returns:
             plot: The generated bar plot showing the correction factors.
         """
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=figsize)
         correction_factors = self.calculate_correction_factor()
         if sort_values:
             correction_factors = self.calculate_correction_factor().sort_values()
@@ -107,4 +107,5 @@ class CorrectionFactor(common_operations.BaseCalculator):
             color="r",
             ls="--",
         )
+        fig.tight_layout()
         return plot

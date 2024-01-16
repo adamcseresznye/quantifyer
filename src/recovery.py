@@ -48,7 +48,7 @@ class Recovery(common_operations.BaseCalculator):
 
         return response_factor
 
-    def plot_response_factor(self, by_sample=False) -> Any:
+    def plot_response_factor(self, by_sample=False, figsize=(5, 5)) -> Any:
         """
         Plots the response factor.
 
@@ -64,7 +64,7 @@ class Recovery(common_operations.BaseCalculator):
             raise ValueError(
                 "The file containing ISRS concentration values is missing. Please provide the file and try again."
             )
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=figsize)
         if by_sample:
             plot = self.calculate_response_factor().boxplot(ax=ax, rot=90)
         else:
@@ -72,6 +72,7 @@ class Recovery(common_operations.BaseCalculator):
         ax.set_title("Relative response factor")
         ax.set_ylabel("(IS_AREA * RS_MASS(pg))/(RS_AREA * IS_MASS(pg))")
         ax.grid(False)
+        fig.tight_layout()
         return plot
 
     def calculate_recovery(self) -> pd.DataFrame:
@@ -106,7 +107,7 @@ class Recovery(common_operations.BaseCalculator):
 
         return is_masses.div(is_rs_amount["is_amount"], axis="index").mul(100)
 
-    def plot_recovery(self, by_sample=True) -> Any:
+    def plot_recovery(self, by_sample=True, figsize=(5, 5)) -> Any:
         """
         Generate a boxplot of the recovery percentages.
 
@@ -124,7 +125,7 @@ class Recovery(common_operations.BaseCalculator):
             raise ValueError(
                 "The file containing ISRS concentration values is missing. Please provide the file and try again."
             )
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=figsize)
         if by_sample:
             plot = self.calculate_recovery().boxplot(ax=ax, rot=90)
         else:
@@ -132,5 +133,6 @@ class Recovery(common_operations.BaseCalculator):
         ax.set_title("Recovery")
         ax.set_ylabel("Recovery (%)")
         ax.grid(False)
+        fig.tight_layout()
 
         return plot

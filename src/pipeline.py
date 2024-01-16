@@ -59,6 +59,7 @@ class MassBasedCalculatorPipeline(CalculationStrategy):
         self.concentration_calculator = concentration_calculator
         default_args = {
             "by_sample": True,
+            "figsize": (5, 5),
         }
         self.plot_functions = {
             "recovery": partial(self.recovery_calculator.plot_recovery, **default_args),
