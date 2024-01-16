@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 import common_operations
 
@@ -33,7 +34,7 @@ class Data:
 
     def __process_file(self, file):
         if file is not None:
-            return self.data_processor.preprocess_file(self.file_reader.read_file(file))
+            return self.data_processor.preprocess_file(self.file_reader.read_csv(file))
         return None
 
 
