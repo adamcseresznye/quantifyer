@@ -62,7 +62,9 @@ def app():
     st.subheader("Input Files")
 
     with st.container(border=True):
-        st.write("Required Files")
+        st.markdown(
+            "Required Files (templates are available [here](https://github.com/adamcseresznye/quantifyer/tree/main/src/streamlit_app/example_data))"
+        )
         quant_file = st.file_uploader(
             "Upload your Quantitative data file (CSV/Excel) here:",
             accept_multiple_files=False,
@@ -109,76 +111,78 @@ def app():
         with col2:
             get_summary = st.checkbox("Get summary statistics")
 
-    click = st.button("Start Data Processing")
+    click = st.button("Calculate data")
 
     if click:
-        try:
-            # Use the save_uploaded_file function for each uploaded file
-            quant_file_path = save_uploaded_file(quant_file)
-            is_correspondence_file_path = save_uploaded_file(is_correspondence_file)
-            sample_properties_file_path = save_uploaded_file(sample_properties_file)
-            qc_file_file_path = save_uploaded_file(qc_file)
-            is_concentration_file_file_path = save_uploaded_file(is_concentration_file)
-
-            # pass the file paths to the Data class
-            if quant_file_path is not None:
-                try:
-                    data_instance = data.Data(
-                        quant_file=quant_file_path,
-                        is_correspondence_file=is_correspondence_file_path,
-                        sample_properties_file=sample_properties_file_path,
-                        qc_file=qc_file_file_path,
-                        is_concentration_file=is_concentration_file_file_path,
-                    )
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-
-            data_validator = data.DataValidator(data_instance)
-            recovery_calculator = recovery.Recovery(data_instance)
-            correction_factor_calculator = qc.CorrectionFactor(data_instance)
-            concentration_calc = (
-                concentration_calculator.MassBasedConcentrationCalculator(
-                    data_instance,
-                    correction_factor_calculator.calculate_correction_factor(),
-                )
-            )
-
-            # initialize pipeline
-            mass_based_calculator = pipeline.MassBasedCalculatorPipeline(
-                data_instance,
-                data_validator,
-                recovery_calculator,
-                correction_factor_calculator,
-                concentration_calc,
-            )
-
-            # select strategy and execute pipeline
-            job = pipeline.StrategySelector(mass_based_calculator)
-
-            recovery_df, correction_factor_df, concentration_df = job.execute()
-
-            # display results as a tuple of dataframes returning recovery, correction_factors, concentrations if applicable
-            if desired_output == "Recovery":
-                display_data(
-                    recovery_df, get_summary, get_plot, job, desired_output, by_sample
-                )
-            elif desired_output == "Correction Factor":
-                display_data(
-                    correction_factor_df, get_summary, get_plot, job, desired_output
-                )
-            elif desired_output == "Concentration":
-                display_data(
-                    concentration_df,
-                    get_summary,
-                    get_plot,
-                    job,
-                    desired_output,
-                    by_sample,
-                )
-
-        except Exception as e:
+        if (
+            quant_file is None
+            or is_correspondence_file is None
+            or sample_properties_file is None
+        ):
             st.warning(
                 "Please provide the required files to start the calculation.", icon="⚠️"
+            )
+            return
+
+        # Use the save_uploaded_file function for each uploaded file
+        quant_file_path = save_uploaded_file(quant_file)
+        is_correspondence_file_path = save_uploaded_file(is_correspondence_file)
+        sample_properties_file_path = save_uploaded_file(sample_properties_file)
+        qc_file_file_path = save_uploaded_file(qc_file)
+        is_concentration_file_file_path = save_uploaded_file(is_concentration_file)
+
+        # pass the file paths to the Data class
+        if quant_file_path is not None:
+            try:
+                data_instance = data.Data(
+                    quant_file=quant_file_path,
+                    is_correspondence_file=is_correspondence_file_path,
+                    sample_properties_file=sample_properties_file_path,
+                    qc_file=qc_file_file_path,
+                    is_concentration_file=is_concentration_file_file_path,
+                )
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
+
+        data_validator = data.DataValidator(data_instance)
+        recovery_calculator = recovery.Recovery(data_instance)
+        correction_factor_calculator = qc.CorrectionFactor(data_instance)
+        concentration_calc = concentration_calculator.MassBasedConcentrationCalculator(
+            data_instance,
+            correction_factor_calculator.calculate_correction_factor(),
+        )
+
+        # initialize pipeline
+        mass_based_calculator = pipeline.MassBasedCalculatorPipeline(
+            data_instance,
+            data_validator,
+            recovery_calculator,
+            correction_factor_calculator,
+            concentration_calc,
+        )
+
+        # select strategy and execute pipeline
+        job = pipeline.StrategySelector(mass_based_calculator)
+
+        recovery_df, correction_factor_df, concentration_df = job.execute()
+
+        # display results as a tuple of dataframes returning recovery, correction_factors, concentrations if applicable
+        if desired_output == "Recovery":
+            display_data(
+                recovery_df, get_summary, get_plot, job, desired_output, by_sample
+            )
+        elif desired_output == "Correction Factor":
+            display_data(
+                correction_factor_df, get_summary, get_plot, job, desired_output
+            )
+        elif desired_output == "Concentration":
+            display_data(
+                concentration_df,
+                get_summary,
+                get_plot,
+                job,
+                desired_output,
+                by_sample,
             )
 
 

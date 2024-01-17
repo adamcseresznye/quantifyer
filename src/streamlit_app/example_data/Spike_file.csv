@@ -1,5 +1,5 @@
 name,amount
-13C_HCB,1250
-BDE_103,1000
-CB_143,12500
-CB_207,1000
+internal_standard_1,1250
+internal_standard_2,1000
+internal_standard_3,12500
+reconstitution_standard,1000

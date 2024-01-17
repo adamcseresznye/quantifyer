@@ -28,15 +28,19 @@ st.markdown(
     """
     **What** : Quantifyer streamlines the data analysis process for targeted LC/GC-MS applications, enabling rapid calculation of key metrics like recovery,
     correction factor, and concentration values. Additionally, it provides informative plots.
-    **Why** :  Manually calculating metrics in Excel can be a tedious and error-prone process, often leading to inconsistencies due to copy-paste errors
+"""
+)
+st.markdown(
+    """**Why** :  Manually calculating metrics in Excel can be a tedious and error-prone process, often leading to inconsistencies due to copy-paste errors
     and repetitive operations. Quantifyer eliminates these challenges by automating the calculations, ensuring accuracy and reproducibility.
-    Additionally, its rapid processing speed significantly reduces turnaround time, compared to manual quantitation.
-    **How** : The Quantifyer app requires only three simple input files: a file containing concentrations and peak areas for each analyte in the samples,
+    Additionally, its rapid processing speed significantly reduces turnaround time, compared to manual quantitation."""
+)
+st.markdown(
+    """ **How** : The Quantifyer app requires only three simple input files: a file containing concentrations and peak areas for each analyte in the samples,
       a file indicating whether each sample is a blank, QC, sample, or standard mix, and a file specifying which analyte is quantitated by which internal standard. See below.
 
     Link to [GitHub repository](https://github.com/adamcseresznye/quantifyer).
-    *Disclaimer: The developer is not liable for errors. This app is provided without any warranties or guarantees.*
-"""
+    """
 )
 
 st.subheader("Expected Files and Formats")
@@ -121,4 +125,8 @@ st.image(
       microliters (µL) of an internal standard mix containing 25 pg/µL of 13C_HCB is spiked into the samples,
       then the corresponding value in the 'amount' column would be 50 x 20 = 1250 pg.
     """,
+)
+
+st.markdown(
+    "*Disclaimer: The developer is not liable for errors. This app is provided without any warranties or guarantees.*"
 )
