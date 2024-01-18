@@ -6,6 +6,10 @@ import pandas as pd
 
 
 class BaseCalculator:
+    """A base class for performing calculations in samples.
+    Classes from the `qc`, `recovery`, and `concentration_calculator` module inherit from this class.
+    """
+
     def __init__(self, data):
         self.data = data
 

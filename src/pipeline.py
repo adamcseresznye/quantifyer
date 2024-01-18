@@ -31,7 +31,10 @@ class CalculationStrategy(ABC):
 
 class MassBasedCalculatorPipeline(CalculationStrategy):
     """
-    Initializes an instance of the class.
+    Initiates the MassBasedCalculatorPipeline class to perform mass-based calculations,
+    such as recovery, correction factors, and concentrations (if necessary). This is
+    especially useful when accounting for analyte concentrations is based on internal standard
+    mass spiked in the samples during sample preparation.
 
     Parameters:
         data (object): The data object.
@@ -129,44 +132,42 @@ class MassBasedCalculatorPipeline(CalculationStrategy):
 
 
 class StrategySelector:
+    """This initializes the StrategySelector class, which provides
+    the ability to choose from a variety of quantitation methods.
+    At present, only the MassBasedCalculatorPipeline is available, allowing
+    for the calculation of analyte concentration (pg/ml) based on the mass of
+    the internal standard (pg) spiked into samples during sample preparation."""
+
     def __init__(self, strategy: CalculationStrategy):
+        """
+        Initializes an instance of the class.
+
+        Args:
+            strategy (CalculationStrategy): The calculation strategy to be used.
+
+        Returns:
+            None
+        """
         self.strategy = strategy
 
     def execute(self):
+        """
+        Executes the function and returns the concentration calculated by the strategy.
+
+        Returns:
+            The concentration calculated by the strategy.
+        """
         return self.strategy.calculate_concentration()
 
     def display_plot(self, plot_name, **kwargs):
+        """
+        Display a plot with the given plot name.
+
+        Parameters:
+            plot_name (str): The name of the plot to be displayed.
+            **kwargs: Additional keyword arguments to be passed to the display function.
+
+        Returns:
+            None
+        """
         self.strategy.display_plot(plot_name, **kwargs)
-
-
-# Usage example
-parent_folder = utils.Configuration.RAW_DATA_PATH
-
-file_paths = {
-    "quant_file": parent_folder.joinpath("results.csv"),
-    "is_correspondence_file": parent_folder.joinpath("is_std_table_correspondence.csv"),
-    "sample_properties_file": parent_folder.joinpath("sample_properties.csv"),
-    "qc_file": parent_folder.joinpath("qc.csv"),
-    "is_concentration_file": parent_folder.joinpath("is_std_table_concentration.csv"),
-}
-
-dfs = data.Data(**file_paths)
-data_validator = data.DataValidator(dfs)
-recovery_calculator = recovery.Recovery(dfs)
-correction_factor_calculator = qc.CorrectionFactor(dfs)
-concentration_calc = concentration_calculator.MassBasedConcentrationCalculator(
-    dfs, correction_factor_calculator.calculate_correction_factor()
-)
-
-mass_based_calculator = MassBasedCalculatorPipeline(
-    dfs,
-    data_validator,
-    recovery_calculator,
-    correction_factor_calculator,
-    concentration_calc,
-)
-
-pipeline = StrategySelector(mass_based_calculator)
-
-results = pipeline.execute()
-results

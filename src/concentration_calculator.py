@@ -13,7 +13,21 @@ import common_operations
 
 
 class MassBasedConcentrationCalculator(common_operations.BaseCalculator):
+    """A class for performing mass-based concentration calculations in samples.
+    It takes in a data (data.Data()) and a correction factor qc.CorrectionFactor() object as input.
+    """
+
     def __init__(self, data, correction_factor):
+        """
+        Initializes an instance of the class.
+
+        Args:
+            data (type): The data to be used for initialization.
+            correction_factor (type): The correction factor to be applied.
+
+        Returns:
+            None
+        """
         super().__init__(data)
         self.correction_factor = correction_factor
 

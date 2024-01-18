@@ -14,6 +14,8 @@ import common_operations
 
 
 class CorrectionFactor(common_operations.BaseCalculator):
+    """A class for computing correction factors. It takes in a data object (data.Data())as input."""
+
     def __init__(self, data):
         super().__init__(data)
 
@@ -81,11 +83,12 @@ class CorrectionFactor(common_operations.BaseCalculator):
 
     def plot_correction_factor(self, sort_values=False, figsize=(5, 5)) -> Any:
         """
-        Generates a bar plot of the correction factors calculated by the calculate_correction_factor() method.
+        Generates a bar plot of the correction factors calculated by
+        the calculate_correction_factor() method.
 
         Parameters:
-            sort_values (bool, optional): If True, the correction factors will be sorted in ascending order before plotting.
-                                        Defaults to False.
+            sort_values (bool, optional): If True, the correction factors will be
+            sorted in ascending order before plotting. Defaults to False.
 
         Returns:
             plot: The generated bar plot showing the correction factors.

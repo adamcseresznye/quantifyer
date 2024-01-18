@@ -119,7 +119,7 @@ def app():
             or is_correspondence_file is None
             or sample_properties_file is None
         ):
-            st.warning(
+            st.error(
                 "Please provide the required files to start the calculation.", icon="⚠️"
             )
             return
@@ -164,26 +164,28 @@ def app():
         # select strategy and execute pipeline
         job = pipeline.StrategySelector(mass_based_calculator)
 
+        # display results as a tuple of dataframes returning recovery, correction_factors, concentrations if applicable
         recovery_df, correction_factor_df, concentration_df = job.execute()
 
-        # display results as a tuple of dataframes returning recovery, correction_factors, concentrations if applicable
-        if desired_output == "Recovery":
-            display_data(
-                recovery_df, get_summary, get_plot, job, desired_output, by_sample
-            )
-        elif desired_output == "Correction Factor":
-            display_data(
-                correction_factor_df, get_summary, get_plot, job, desired_output
-            )
-        elif desired_output == "Concentration":
-            display_data(
-                concentration_df,
-                get_summary,
-                get_plot,
-                job,
-                desired_output,
-                by_sample,
-            )
+        with st.container(border=True):
+            st.success("Please find your results below 👇!", icon="✅")
+            if desired_output == "Recovery":
+                display_data(
+                    recovery_df, get_summary, get_plot, job, desired_output, by_sample
+                )
+            elif desired_output == "Correction Factor":
+                display_data(
+                    correction_factor_df, get_summary, get_plot, job, desired_output
+                )
+            elif desired_output == "Concentration":
+                display_data(
+                    concentration_df,
+                    get_summary,
+                    get_plot,
+                    job,
+                    desired_output,
+                    by_sample,
+                )
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ import common_operations
 
 
 class Recovery(common_operations.BaseCalculator):
-    """A class for calculating response factors and recoveries."""
+    """A class for calculating response factors and recoveries. It takes in a data object (data.Data())as input."""
 
     def __init__(self, data):
         super().__init__(data)
