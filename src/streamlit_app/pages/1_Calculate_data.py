@@ -168,7 +168,7 @@ def app():
         recovery_df, correction_factor_df, concentration_df = job.execute()
 
         with st.container(border=True):
-            st.success("Please find your results below 👇!", icon="✅")
+            st.success("Find your results below 👇", icon="✅")
             if desired_output == "Recovery":
                 display_data(
                     recovery_df, get_summary, get_plot, job, desired_output, by_sample
