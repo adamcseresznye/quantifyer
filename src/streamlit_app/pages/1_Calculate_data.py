@@ -66,24 +66,24 @@ def app():
             "Required Files (templates are available [here](https://github.com/adamcseresznye/quantifyer/tree/main/src/streamlit_app/example_data))"
         )
         quant_file = st.file_uploader(
-            "Upload your Quantitative data file (CSV/Excel) here:",
+            "Upload your Quantitative data file (*.csv*) here:",
             accept_multiple_files=False,
         )
         is_correspondence_file = st.file_uploader(
-            "Upload your Internal standard correspondence file (CSV/Excel) here:",
+            "Upload your Internal standard correspondence file (*.csv*) here:",
             accept_multiple_files=False,
         )
         sample_properties_file = st.file_uploader(
-            "Upload your Sample properties file (CSV/Excel) here:",
+            "Upload your Sample properties file (*.csv*) here:",
             accept_multiple_files=False,
         )
 
         with st.expander("### Optional files"):
             qc_file = st.file_uploader(
-                "Upload your QC file (CSV/Excel) here:", accept_multiple_files=False
+                "Upload your QC file (*.csv*) here:", accept_multiple_files=False
             )
             is_concentration_file = st.file_uploader(
-                "Upload your Spike file (CSV/Excel) here:", accept_multiple_files=False
+                "Upload your Spike file (*.csv*) here:", accept_multiple_files=False
             )
 
     st.subheader("Select Metrics to Calculate")
